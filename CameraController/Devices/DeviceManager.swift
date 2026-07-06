@@ -64,7 +64,9 @@ final class DevicesManager: ObservableObject {
             return
         }
 
-        devices.append(CaptureDevice(avDevice: device))
+        let captureDevice = CaptureDevice(avDevice: device)
+        devices.append(captureDevice)
+        captureDevice.applyStartupSettingsIfNeeded()
         NotificationCenter.default.post(name: .devicesUpdated, object: nil)
     }
 

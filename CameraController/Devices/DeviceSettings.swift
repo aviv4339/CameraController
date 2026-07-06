@@ -25,4 +25,10 @@ struct DeviceSettings: Codable {
     let tilt: Float
     let focusAuto: Bool
     let focus: Float
+    // Optional so profiles saved before these fields existed still decode.
+    let gamma: Float?
+    let hdr: Bool?
+    let hdrMode: Int?
+    let fov: Int?
+    let afMode: Int?
 }

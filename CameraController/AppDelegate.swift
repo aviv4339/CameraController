@@ -27,10 +27,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if UserSettings.shared.checkForUpdatesOnStartup {
             checkForUpdates()
         }
+
+        DevicesManager.shared.selectedDevice?.applyStartupSettingsIfNeeded()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        DevicesManager.shared.selectedDevice?.saveStartupSettings()
     }
 
     // MARK: - Check For Updates

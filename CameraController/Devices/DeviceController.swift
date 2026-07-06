@@ -21,6 +21,7 @@ final class DeviceController: ObservableObject {
     lazy var contrast = NumberCaptureDeviceProperty(properties.contrast)
     lazy var saturation = NumberCaptureDeviceProperty(properties.saturation)
     lazy var sharpness = NumberCaptureDeviceProperty(properties.sharpness)
+    lazy var gamma = NumberCaptureDeviceProperty(properties.gamma)
     lazy var hue = NumberCaptureDeviceProperty(properties.hue)
     lazy var hueAuto = BoolCaptureDeviceProperty(properties.hueAuto)
 
@@ -43,6 +44,14 @@ final class DeviceController: ObservableObject {
     lazy var focusAuto = BoolCaptureDeviceProperty(properties.focusAuto)
     lazy var focusAbsolute = NumberCaptureDeviceProperty(properties.focusAbsolute)
 
+    // Razer Kiyo Pro vendor controls (nil on cameras without the extension unit)
+    lazy var razer: RazerCaptureDeviceProperty? = {
+        guard properties.razerExtension.isCapable else {
+            return nil
+        }
+        return RazerCaptureDeviceProperty(properties.razerExtension)
+    }()
+
     private let properties: UVCDeviceProperties
 
     init?(properties: UVCDeviceProperties?) {
@@ -60,6 +69,7 @@ final class DeviceController: ObservableObject {
         contrast.write()
         saturation.write()
         sharpness.write()
+        gamma.write()
         whiteBalanceAuto.write()
         whiteBalance.write()
         powerLineFrequency.write()
@@ -86,7 +96,12 @@ final class DeviceController: ObservableObject {
                               pan: self.panTiltAbsolute.sliderValue1,
                               tilt: self.panTiltAbsolute.sliderValue2,
                               focusAuto: self.focusAuto.isEnabled,
-                              focus: self.focusAbsolute.sliderValue)
+                              focus: self.focusAbsolute.sliderValue,
+                              gamma: self.gamma.sliderValue,
+                              hdr: self.razer?.hdrEnabled,
+                              hdrMode: self.razer?.hdrMode.rawValue,
+                              fov: self.razer?.fov.rawValue,
+                              afMode: self.razer?.afMode.rawValue)
     }
 
     func set(_ deviceSettings: DeviceSettings) {
@@ -106,6 +121,17 @@ final class DeviceController: ObservableObject {
         self.panTiltAbsolute.sliderValue2 = deviceSettings.tilt
         self.focusAuto.isEnabled = deviceSettings.focusAuto
         self.focusAbsolute.sliderValue = deviceSettings.focus
+        if let gamma = deviceSettings.gamma {
+            self.gamma.sliderValue = gamma
+        }
+        if let razer = self.razer {
+            razer.set(hdr: deviceSettings.hdr ?? razer.hdrEnabled,
+                      hdrMode: RazerHDRMode(rawValue: deviceSettings.hdrMode ?? razer.hdrMode.rawValue)
+                        ?? razer.hdrMode,
+                      fov: RazerFOV(rawValue: deviceSettings.fov ?? razer.fov.rawValue) ?? razer.fov,
+                      afMode: RazerAFMode(rawValue: deviceSettings.afMode ?? razer.afMode.rawValue)
+                        ?? razer.afMode)
+        }
     }
 
     func resetDefault() {
@@ -116,6 +142,7 @@ final class DeviceController: ObservableObject {
         self.contrast.reset()
         self.saturation.reset()
         self.sharpness.reset()
+        self.gamma.reset()
         self.whiteBalanceAuto.reset()
         self.whiteBalance.reset()
         self.powerLineFrequency.reset()

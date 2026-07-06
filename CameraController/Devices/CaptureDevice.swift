@@ -61,4 +61,30 @@ final class CaptureDevice: Hashable, ObservableObject {
             controller.writeValues()
         }
     }
+
+    /// Re-applies the last stored settings for this camera, if the user enabled
+    /// "Apply settings on startup" and a snapshot exists.
+    func applyStartupSettingsIfNeeded() {
+        guard UserSettings.shared.applyOnStartup,
+            let uniqueID = avDevice?.uniqueID,
+            let settings = StartupSettingsStore.settings(for: uniqueID),
+            let controller = controller else {
+            return
+        }
+
+        Task {
+            controller.set(settings)
+            controller.writeValues()
+        }
+    }
+
+    /// Snapshots the current settings so they can be re-applied on the next launch.
+    func saveStartupSettings() {
+        guard let uniqueID = avDevice?.uniqueID,
+            let controller = controller else {
+            return
+        }
+
+        StartupSettingsStore.save(controller.getSettings(), for: uniqueID)
+    }
 }

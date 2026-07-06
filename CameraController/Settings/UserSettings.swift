@@ -62,6 +62,12 @@ final class UserSettings: ObservableObject {
         }
     }
 
+    @Published var applyOnStartup: Bool {
+        didSet {
+            UserDefaults.standard.set(applyOnStartup, forKey: "applyOnStartup")
+        }
+    }
+
     private init() {
         openAtLogin = UserDefaults.standard.bool(forKey: "login")
         readRate = RefreshSettingsRate(rawValue: UserDefaults.standard.double(forKey: "readRate")) ?? .disabled
@@ -72,5 +78,6 @@ final class UserSettings: ObservableObject {
         ) ?? .small
         checkForUpdatesOnStartup = UserDefaults.standard.bool(forKey: "checkForUpdatesOnStartup")
         mirrorPreview = UserDefaults.standard.bool(forKey: "mirrorPreview")
+        applyOnStartup = UserDefaults.standard.bool(forKey: "applyOnStartup")
     }
 }

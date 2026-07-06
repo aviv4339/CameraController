@@ -14,6 +14,14 @@ struct AdvancedView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: Constants.Style.controlsSpacing) {
+                if let razer = controller.razer {
+                    RazerView(razer: razer)
+                }
+
+                if controller.gain.isCapable {
+                    GainView(controller: controller)
+                }
+
                 if controller.powerLineFrequency.isCapable {
                     PowerLineView(controller: controller)
                 }

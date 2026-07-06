@@ -57,6 +57,40 @@ public class UVCControl {
         }
     }
 
+    /// Sends an arbitrary byte payload via SET_CUR. Used by vendor extension unit controls
+    /// (e.g. the Razer Kiyo Pro), whose commands are multi-byte structures rather than a
+    /// single integer value.
+    @discardableResult
+    func setRawData(_ bytes: [UInt8]) -> Bool {
+        guard uvcUnit >= 0 else {
+            return false
+        }
+
+        let requestType = USBmakebmRequestType(direction: kUSBOut, type: kUSBClass, recipient: kUSBInterface)
+        var buffer = bytes
+
+        let success = buffer.withUnsafeMutableBytes { rawBuffer -> Bool in
+            var request = IOUSBDevRequest(bmRequestType: requestType,
+                                          bRequest: UVCRequestCodes.setCurrent.rawValue,
+                                          wValue: UInt16(uvcSelector<<8),
+                                          wIndex: UInt16(uvcUnit<<8) | UInt16(uvcInterface),
+                                          wLength: UInt16(bytes.count),
+                                          pData: rawBuffer.baseAddress,
+                                          wLenDone: 0)
+            if #available(macOS 12.0, *) {
+                return interface.pointee.pointee.ControlRequest(interface, 0, &request) == kIOReturnSuccess
+            } else {
+                return interface.pointee.pointee.USBInterfaceOpenSeize(interface) == kIOReturnSuccess &&
+                    interface.pointee.pointee.ControlRequest(interface, 0, &request) == kIOReturnSuccess &&
+                    interface.pointee.pointee.USBInterfaceClose(interface) == kIOReturnSuccess
+            }
+        }
+
+        UVCLog.request(selector: uvcSelector, unit: uvcUnit, interface: uvcInterface,
+                       payload: bytes, success: success)
+        return success
+    }
+
     func updateIsCapable() {
         isCapable = getDataFor(type: UVCRequestCodes.getInfo, length: 1) != 0
     }
@@ -80,8 +114,10 @@ public class UVCControl {
                                           pData: value,
                                           wLenDone: 0)
             if #available(macOS 12.0, *) {
-                guard
-                    interface.pointee.pointee.ControlRequest(interface, 0, &request) == kIOReturnSuccess else {
+                let returnCode = interface.pointee.pointee.ControlRequest(interface, 0, &request)
+                UVCLog.controlRequest(type: UInt8(type.rawValue), selector: uvcSelector,
+                                      unit: uvcUnit, interface: uvcInterface, returnCode: returnCode)
+                guard returnCode == kIOReturnSuccess else {
                     throw UVCError.requestError
                 }
             } else {

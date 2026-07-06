@@ -34,6 +34,10 @@ struct BasicSettings: View {
                     SharpnessView(controller: controller)
                 }
 
+                if controller.gamma.isCapable {
+                    GammaView(controller: controller)
+                }
+
                 if controller.hue.isCapable && controller.hue.maximum > 0 {
                     HueView(controller: controller)
                 }

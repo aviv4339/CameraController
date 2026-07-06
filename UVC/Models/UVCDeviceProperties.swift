@@ -34,11 +34,16 @@ public final class UVCDeviceProperties {
     public let whiteBalance: UVCIntControl
     public let whiteBalanceAuto: UVCBoolControl
 
+    // Razer Kiyo Pro vendor extension unit (HDR / FoV / AF mode). isCapable is false
+    // on cameras without the matching extension unit.
+    public let razerExtension: UVCExtensionControl
+
     init(_ device: USBDevice) {
         let interface = device.interface
         let camerTerminalId = device.descriptor.cameraTerminalID
         let processingUnitId = device.descriptor.processingUnitID
         let interfaceId = device.descriptor.interfaceID
+        let extensionUnitId = device.descriptor.extensionUnitID
 
         scanningMode = UVCBoolControl(interface, 1, UVCCameraTerminal.scanningMode, camerTerminalId, interfaceId)
         exposureMode = UVCBitmapControl(interface, 1, UVCCameraTerminal.aeMode, camerTerminalId, interfaceId)
@@ -69,5 +74,10 @@ public final class UVCDeviceProperties {
                                      processingUnitId, interfaceId)
         whiteBalanceAuto = UVCBoolControl(interface, 1, UVCProcessingUnit.whiteBalanceTemperatureAuto,
                                           processingUnitId, interfaceId)
+
+        razerExtension = UVCExtensionControl(interface, extensionUnitId, interfaceId)
+
+        UVCLog.info("descriptor IDs: processingUnit=\(processingUnitId) cameraTerminal=\(camerTerminalId) "
+            + "interface=\(interfaceId) extensionUnit=\(extensionUnitId)")
     }
 }

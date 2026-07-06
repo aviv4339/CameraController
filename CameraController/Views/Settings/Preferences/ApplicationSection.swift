@@ -22,6 +22,15 @@ struct ApplicationSection: View {
                 Toggle(isOn: $settings.openAtLogin)
                     .toggleStyle(SwitchToggleStyle(tint: Constants.Colors.accentColor))
             }
+
+            HStack(spacing: 20.0) {
+                Text("Apply settings on startup")
+                    .help("Re-apply the last used settings when a camera is connected. "
+                          + "Standard settings reset when a camera is unplugged.")
+                Spacer()
+                Toggle(isOn: $settings.applyOnStartup)
+                    .toggleStyle(SwitchToggleStyle(tint: Constants.Colors.accentColor))
+            }
         }
     }
 }
